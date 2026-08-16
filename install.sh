@@ -406,13 +406,45 @@ if $DO_NEOVIDE; then
     success "Neovide $NEOVIDE_LATEST → $NEOVIDE_BIN"
   fi
 
-  # Neovide icon — use the one bundled in the repo if present, else skip
+  # Neovide icon. This used to look only for a copy bundled inside the
+  # extracted archive, but neovide-linux-x86_64.tar ships just the binary,
+  # so that file never existed and the icon was silently skipped -- leaving
+  # neovide.desktop declaring "Icon=neovide" with nothing to resolve it to,
+  # and a blank entry in the menu and task bar. Neovide isn't packaged in
+  # Debian either, so there's no icon to pick up from the system. Falls back
+  # to the icon in Neovide's own repository, pinned to the tag actually
+  # installed, with main as a last resort.
   NEOVIDE_ICON_SRC="$NEOVIDE_DEST/neovide.svg"
   NEOVIDE_ICON="/usr/local/share/icons/hicolor/scalable/apps/neovide.svg"
+  neovide_icon_ok=false
+  sudo mkdir -p "$(dirname "$NEOVIDE_ICON")"
+
   if [[ -f "$NEOVIDE_ICON_SRC" ]]; then
-    sudo mkdir -p "$(dirname "$NEOVIDE_ICON")"
     sudo cp "$NEOVIDE_ICON_SRC" "$NEOVIDE_ICON"
-    sudo gtk-update-icon-cache /usr/local/share/icons/hicolor 2>/dev/null || true
+    neovide_icon_ok=true
+  else
+    TMP_ICON=$(mktemp /tmp/neovide-icon-XXXXXX.svg)
+    for ref in "${NEOVIDE_LATEST:-}" main; do
+      [[ -n "$ref" ]] || continue
+      # No -S here: a miss on the first ref is expected and handled by the
+      # next one, so curl shouldn't print a scary 404 on the way through.
+      if curl -fsL "https://raw.githubusercontent.com/neovide/neovide/$ref/assets/neovide.svg" \
+              -o "$TMP_ICON"; then
+        sudo cp "$TMP_ICON" "$NEOVIDE_ICON"
+        neovide_icon_ok=true
+        break
+      fi
+    done
+    safe_remove_tmp "$TMP_ICON"
+  fi
+
+  if $neovide_icon_ok; then
+    sudo chmod 644 "$NEOVIDE_ICON"
+    # A stale hicolor cache hides the new file even though it is on disk.
+    sudo gtk-update-icon-cache -f /usr/local/share/icons/hicolor 2>/dev/null || true
+    success "neovide icon → $NEOVIDE_ICON"
+  else
+    warn "Could not obtain the Neovide icon — launcher will show no icon."
   fi
 
   sudo mkdir -p /usr/local/share/applications
