@@ -63,6 +63,11 @@ Use um `.py` simples:
 - [ ] `F6` → compila/roda e cai direto no prompt `>>>` do Python (cursor já
       em modo Terminal-mode, pronto pra digitar — equivalente a apertar `i`)
 - [ ] `Shift+F6` / `Ctrl+Shift+F6` → mesma coisa nos outros layouts
+
+Se precisar digitar `i` manualmente pra entrar no prompt: **não** adicione
+`--autoinsert=smart` explícito na chamada do `FloatermNew` — passar essa flag
+por fora não funcionou na prática (testado ao vivo). Deixar sem a flag, para
+o `vim-floaterm` cair no próprio padrão global (`'smart'`), é o que funciona.
 - [ ] Digitar algo no prompt funciona normalmente (não está preso em modo Normal)
 
 ## 5. Manual — `:checkhealth` / `:LazyHealth`

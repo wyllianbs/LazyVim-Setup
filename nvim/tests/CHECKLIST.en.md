@@ -67,6 +67,11 @@ Use a simple `.py`:
 - [ ] `Shift+F6` / `Ctrl+Shift+F6` → same for the other layouts
 - [ ] Typing at the prompt works normally (not stuck in Normal mode)
 
+If you have to press `i` manually to reach the prompt: do **not** add an
+explicit `--autoinsert=smart` to the `FloatermNew` call — passing that flag
+did not work in practice (tested live). Leaving it unset, so `vim-floaterm`
+falls back to its own global default (`'smart'`), is what actually works.
+
 ## 5. Manual — `:checkhealth` / `:LazyHealth`
 
 - [ ] `dap` → the `gdb` adapter shows `OK is executable`, no

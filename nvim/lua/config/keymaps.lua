@@ -87,12 +87,10 @@ vim.api.nvim_set_keymap('t', ESC .. 'O6S', '<S-C-F4>', { noremap = false, silent
 --     Ctrl+Shift+F5 / F6  → floating window
 -- ─────────────────────────────────────────────────────────────
 
--- vim-floaterm >= 2025-08 requires 'never'/'smart'/'always' for these two
--- flags instead of the old false/0 booleans; 'never' is the equivalent of
--- the old false/0 (see :h g:floaterm_autoinsert / :h g:floaterm_autoclose).
--- --autoinsert is intentionally NOT set here: RunCode below chooses it
--- per call ('never' for a plain run, 'smart' for F6/interactive so the
--- cursor lands at the shell/REPL prompt ready to type, like pressing `i`).
+-- vim-floaterm >= 2025-08 requires 'never'/'smart'/'always' instead of the
+-- old false/0/1/2 booleans for --autoclose (see :h g:floaterm_autoclose);
+-- 'never' is the equivalent of the old false/0. --autoinsert is left unset
+-- on purpose -- see the comment in RunCode() where FloatermNew is called.
 local ft_layouts = {
   v = '--wintype=vsplit --width=0.45 --autoclose=never',
   h = '--wintype=split --height=0.25 --autoclose=never',
@@ -196,14 +194,13 @@ function RunCode(layout, interactive)
     return
   end
 
-  -- F6 (interactive) should drop straight into the shell/REPL prompt, like
-  -- pressing `i`; F5 (plain run) leaves the cursor in normal mode so the
-  -- user can read/scroll the output without accidentally typing into it.
-  local autoinsert = interactive and 'smart' or 'never'
-
+  -- F6 (interactive) needs to drop straight into the shell/REPL prompt,
+  -- like pressing `i`. Passing --autoinsert=smart explicitly here did NOT
+  -- do that in practice (had to press `i` manually); leaving it unset so
+  -- vim-floaterm falls back to its own global default (also 'smart') does.
   pcall(vim.cmd, 'FloatermKill!')
-  vim.cmd(string.format('FloatermNew --name=runterm %s --autoinsert=%s bash -c %s',
-          ft_layouts[layout], autoinsert, vim.fn.shellescape(cmd)))
+  vim.cmd(string.format('FloatermNew --name=runterm %s bash -c %s',
+          ft_layouts[layout], vim.fn.shellescape(cmd)))
 
   if not interactive then
     -- nvim_buf_attach()/on_lines on a :terminal buffer is unsafe -- it was
