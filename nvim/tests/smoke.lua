@@ -68,6 +68,11 @@ local function output_reached_floaterm(marker)
   end, 100)
 end
 
+-- RunCode's "press any key to close" feature (see keymaps.lua) only
+-- engages when a UI is attached (`#vim.api.nvim_list_uis() > 0`), which is
+-- never true for this headless test -- so it stays out of the way here and
+-- there's nothing extra to do to avoid it blocking on a keypress that would
+-- never come.
 local tmp = vim.fn.tempname() .. '.py'
 vim.cmd.edit(tmp)
 
