@@ -848,4 +848,25 @@ nvim --headless "+TSUpdate" +qa 2>/dev/null || true
 
 success "Plugins $([ "$MODE" == install ] && echo 'bootstrapped' || echo 'updated')"
 
+# =============================================================================
+# 13/12. Smoke test — verify the F4/F5/F6 keymaps still work
+# =============================================================================
+# Plugin updates can silently break these (e.g. vim-floaterm changing what
+# values --autoinsert/--autoclose accept) without any error at :Lazy sync
+# time — this catches it right away instead of at the next time F5 is used.
+if [[ "$MODE" == "install" ]]; then SMOKE_SECTION="13"; else SMOKE_SECTION="12"; fi
+
+section "$SMOKE_SECTION · Smoke test (F4/F5/F6 keymaps)"
+
+if [[ -x "$CONFIG_SRC/tests/smoke.sh" ]]; then
+  if "$CONFIG_SRC/tests/smoke.sh"; then
+    success "Smoke test passed"
+  else
+    warn "Smoke test failed — a plugin update may have broken the F4/F5/F6 keymaps."
+    warn "See the [FAIL] line(s) above for what to fix in nvim/lua/config/keymaps.lua."
+  fi
+else
+  warn "nvim/tests/smoke.sh not found — skipping smoke test."
+fi
+
 # (summary is printed by the _exit_summary trap on exit)

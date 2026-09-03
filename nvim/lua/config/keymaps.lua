@@ -87,10 +87,13 @@ vim.api.nvim_set_keymap('t', ESC .. 'O6S', '<S-C-F4>', { noremap = false, silent
 --     Ctrl+Shift+F5 / F6  → floating window
 -- ─────────────────────────────────────────────────────────────
 
+-- vim-floaterm >= 2025-08 requires 'never'/'smart'/'always' for these two
+-- flags instead of the old false/0 booleans; 'never' is the equivalent of
+-- the old false/0 (see :h g:floaterm_autoinsert / :h g:floaterm_autoclose).
 local ft_layouts = {
-  v = '--wintype=vsplit --width=0.45 --autoinsert=false --autoclose=0',
-  h = '--wintype=split --height=0.25 --autoinsert=false --autoclose=0',
-  f = '--title= --titleposition=left --position=center --wintype=floating --height=0.9 --width=0.9 --autoinsert=false --autoclose=0',
+  v = '--wintype=vsplit --width=0.45 --autoinsert=never --autoclose=never',
+  h = '--wintype=split --height=0.25 --autoinsert=never --autoclose=never',
+  f = '--title= --titleposition=left --position=center --wintype=floating --height=0.9 --width=0.9 --autoinsert=never --autoclose=never',
 }
 
 -- Last executed source file; allows re-running from inside the terminal.
