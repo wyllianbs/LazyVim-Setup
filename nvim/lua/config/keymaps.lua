@@ -31,7 +31,7 @@ vim.api.nvim_set_keymap('n', '<S-F4>', string.format(':lua toggleFT("%s", "%s")<
 vim.api.nvim_set_keymap('t', '<S-F4>', string.format('<C-\\><C-n>:lua toggleFT("%s", "%s")<CR>', name_win_h, floaterm_cmd_h), { noremap = true, silent = true })
 
 local name_win_f = 'fterminal'
-local floaterm_cmd_f = '--title= --titleposition=left --position=center --wintype=floating --height=0.9 --width=0.9'
+local floaterm_cmd_f = '--title= --titleposition=left --position=center --wintype=float --height=0.9 --width=0.9'
 vim.api.nvim_set_keymap('n', '<S-C-F4>', string.format(':lua toggleFT("%s", "%s")<CR>', name_win_f, floaterm_cmd_f), { noremap = true, silent = true })
 vim.api.nvim_set_keymap('t', '<S-C-F4>', string.format('<C-\\><C-n>:lua toggleFT("%s", "%s")<CR>', name_win_f, floaterm_cmd_f), { noremap = true, silent = true })
 
@@ -93,7 +93,7 @@ vim.api.nvim_set_keymap('t', ESC .. 'O6S', '<S-C-F4>', { noremap = false, silent
 local ft_layouts = {
   v = '--wintype=vsplit --width=0.45 --autoinsert=never --autoclose=never',
   h = '--wintype=split --height=0.25 --autoinsert=never --autoclose=never',
-  f = '--title= --titleposition=left --position=center --wintype=floating --height=0.9 --width=0.9 --autoinsert=never --autoclose=never',
+  f = '--title= --titleposition=left --position=center --wintype=float --height=0.9 --width=0.9 --autoinsert=never --autoclose=never',
 }
 
 -- Last executed source file; allows re-running from inside the terminal.

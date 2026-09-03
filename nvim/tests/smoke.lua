@@ -48,30 +48,54 @@ for _, m in ipairs(expected) do
   end
 end
 
--- 2. RunCode actually runs code end-to-end: no argument-validation error
---    from vim-floaterm (this is what broke when --autoinsert=false/
---    --autoclose=0 stopped being accepted after a plugin update), and the
---    program's output really reaches the floaterm buffer.
-local tmp = vim.fn.tempname() .. '.py'
-vim.fn.writefile({ 'print("smoke-test-ok")' }, tmp)
-vim.cmd.edit(tmp)
-
-local ok, call_err = pcall(RunCode, 'v', false)
-check('RunCode(v, false) does not error', ok, ok and nil or tostring(call_err))
-
-if ok then
-  local ran = vim.wait(3000, function()
+-- 2. RunCode actually runs code end-to-end for all three layouts (vsplit,
+--    split, float) -- no argument-validation error from vim-floaterm (this
+--    is what broke when --autoinsert=false/--autoclose=0, and separately
+--    --wintype=floating, stopped being accepted after a plugin update), and
+--    the program's output really reaches the floaterm buffer. RunCode always
+--    reuses/kills the single 'runterm' floaterm, so it's safe to check right
+--    after each call.
+local function output_reached_floaterm(marker)
+  return vim.wait(3000, function()
     for _, buf in ipairs(vim.api.nvim_list_bufs()) do
       if vim.bo[buf].filetype == 'floaterm' then
         for _, line in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
-          if line:find('smoke-test-ok', 1, true) then return true end
+          if line:find(marker, 1, true) then return true end
         end
       end
     end
     return false
   end, 100)
-  check('floaterm actually ran the code (output observed)', ran)
 end
+
+local tmp = vim.fn.tempname() .. '.py'
+vim.cmd.edit(tmp)
+
+for _, layout in ipairs({ 'v', 'h', 'f' }) do
+  local marker = 'smoke-test-ok-' .. layout
+  vim.fn.writefile({ string.format('print("%s")', marker) }, tmp)
+  vim.cmd('edit!')
+
+  local ok, call_err = pcall(RunCode, layout, false)
+  check(string.format("RunCode('%s', false) does not error", layout), ok, ok and nil or tostring(call_err))
+
+  if ok then
+    check(
+      string.format("RunCode('%s', false) output reached the floaterm", layout),
+      output_reached_floaterm(marker)
+    )
+  end
+end
+
+pcall(vim.cmd, 'FloatermKill!')
+
+-- 3. Ctrl+Shift+F4's floating floaterm toggle (a separate code path from
+--    RunCode/ft_layouts -- shares only the --wintype=float flag, which is
+--    exactly what broke here).
+local ok_f4, err_f4 = pcall(toggleFT, 'smoke_test_f4_float',
+  '--title= --titleposition=left --position=center --wintype=float --height=0.9 --width=0.9')
+check('toggleFT floating (Ctrl+Shift+F4) does not error', ok_f4, ok_f4 and nil or tostring(err_f4))
+pcall(vim.cmd, 'FloatermKill! smoke_test_f4_float')
 
 -- Switch away before deleting the tmp file, otherwise quitting the buffer
 -- whose file just vanished triggers an E211 hit-enter prompt that would
